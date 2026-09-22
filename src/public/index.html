@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warrigal Park FC — Member Registration & Roster System</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="app-header">
+        <div class="header-container">
+            <div class="brand">
+                <div class="logo-shield">WPFC</div>
+                <div>
+                    <h1>Warrigal Park Football Club Inc.</h1>
+                    <p class="subtitle">Member Registration & Team Roster Portal · Bald Hills, Brisbane (Est. 1978)</p>
+                </div>
+            </div>
+            <div class="header-badges">
+                <span class="badge badge-season">2026 Season</span>
+                <span class="badge badge-nfa">NFA Affiliated</span>
+                <span id="env-badge" class="badge badge-env">ENV: DEV</span>
+            </div>
+        </div>
+    </header>
+
+    <nav class="app-nav">
+        <div class="nav-container">
+            <button class="nav-btn active" data-tab="tab-roster">⚽ Team Rosters & Squads (Danny)</button>
+            <button class="nav-btn" data-tab="tab-registration">📋 Registration Desk (Vanessa)</button>
+            <button class="nav-btn" data-tab="tab-members">👥 Members & Shared Guardians</button>
+            <button class="nav-btn" data-tab="tab-config">⚙️ Configuration & System Info</button>
+        </div>
+    </nav>
+
+    <main class="main-container">
+        <!-- Notification Banner -->
+        <div id="alert-box" class="alert-box hidden"></div>
+
+        <!-- TAB 1: TEAMS & ROSTERS -->
+        <section id="tab-roster" class="tab-content active">
+            <div class="section-header">
+                <div>
+                    <h2>Team Rosters & Squad Allocation</h2>
+                    <p class="section-desc">Manage teams, assign registered players, move squads, and view coach emergency contact sheets.</p>
+                </div>
+                <div class="actions">
+                    <button class="btn btn-primary" onclick="openModal('modal-new-team')">+ Create Team</button>
+                    <button class="btn btn-secondary" onclick="printRoster()">🖨️ Print Team Sheet</button>
+                </div>
+            </div>
+
+            <div class="roster-grid">
+                <!-- Team Selector Sidebar -->
+                <aside class="sidebar-card">
+                    <h3>2026 Teams</h3>
+                    <div class="filter-group">
+                        <label for="team-age-filter">Filter by Age Group:</label>
+                        <select id="team-age-filter" onchange="filterTeamsByAge()">
+                            <option value="">All Age Groups</option>
+                            <option value="U8">U8</option>
+                            <option value="U13">U13</option>
+                            <option value="Senior">Senior</option>
+                        </select>
+                    </div>
+                    <div id="team-list" class="team-list">
+                        <!-- Loaded dynamically -->
+                    </div>
+                </aside>
+
+                <!-- Active Team Roster View -->
+                <div class="main-card">
+                    <div id="team-detail-header" class="team-detail-header">
+                        <div>
+                            <h3 id="selected-team-name">Select a team</h3>
+                            <p id="selected-team-meta" class="team-meta"></p>
+                        </div>
+                        <div class="team-roster-actions">
+                            <button class="btn btn-sm btn-outline" onclick="openAddPlayerToTeamModal()">+ Place Player on Roster</button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="data-table" id="roster-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Player Name</th>
+                                    <th>DOB</th>
+                                    <th>Category</th>
+                                    <th>Primary Emergency Contact</th>
+                                    <th>Contact Mobile</th>
+                                    <th>Notes / Medical</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="roster-tbody">
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted">Select a team from the left sidebar to view roster.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: REGISTRATION DESK -->
+        <section id="tab-registration" class="tab-content">
+            <div class="section-header">
+                <div>
+                    <h2>Registration Desk (2026 Season)</h2>
+                    <p class="section-desc">Record member registrations, enforce the Junior Guardian Rule, and view completed vs pending sign-ons.</p>
+                </div>
+                <div class="actions">
+                    <button class="btn btn-primary" onclick="openModal('modal-new-registration')">+ New 2026 Registration</button>
+                </div>
+            </div>
+
+            <div class="rule-callout">
+                <span class="callout-icon">🛡️</span>
+                <div>
+                    <strong>Club & Association Rule Enforcement:</strong>
+                    A member under 18 years of age (as of Dec 31, 2026) <em>cannot</em> hold a completed registration without a linked parent/guardian. Attempts to complete junior registration without guardian consent are automatically refused.
+                </div>
+            </div>
+
+            <div class="main-card">
+                <div class="search-bar-row">
+                    <input type="text" id="reg-search" placeholder="Search registrations by player name..." onkeyup="filterRegistrations()">
+                    <span id="reg-count-badge" class="count-pill">0 Registrations</span>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Reg ID</th>
+                                <th>Player Name</th>
+                                <th>DOB</th>
+                                <th>Age Group</th>
+                                <th>Status</th>
+                                <th>Guardians Linked</th>
+                                <th>Notes / Medical</th>
+                                <th>Date Registered</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reg-tbody">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: MEMBERS & GUARDIANS -->
+        <section id="tab-members" class="tab-content">
+            <div class="section-header">
+                <div>
+                    <h2>Members & Shared Guardians Register</h2>
+                    <p class="section-desc">Manage individual member profiles, shared parent records for siblings, and contact information.</p>
+                </div>
+                <div class="actions">
+                    <button class="btn btn-primary" onclick="openModal('modal-new-member')">+ Add Member</button>
+                    <button class="btn btn-secondary" onclick="openModal('modal-new-guardian')">+ Add Parent/Guardian</button>
+                    <button class="btn btn-outline" onclick="openModal('modal-link-guardian')">🔗 Link Sibling to Guardian</button>
+                </div>
+            </div>
+
+            <div class="main-card">
+                <div class="search-bar-row">
+                    <input type="text" id="member-search" placeholder="Search members by first or last name..." onkeyup="searchMembers()">
+                    <span id="member-count-badge" class="count-pill">0 Members</span>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>DOB</th>
+                                <th>Gender</th>
+                                <th>Linked Parent/Guardian</th>
+                                <th>Guardian Mobile</th>
+                                <th>Active Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="member-tbody">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: CONFIGURATION & SYSTEM STATUS -->
+        <section id="tab-config" class="tab-content">
+            <div class="section-header">
+                <div>
+                    <h2>Configuration Management & System Architecture</h2>
+                    <p class="section-desc">Active environment parameters, deployment settings, and configuration baselines.</p>
+                </div>
+            </div>
+
+            <div class="config-grid">
+                <div class="config-card">
+                    <h3>Environment & Runtime Configuration</h3>
+                    <table class="meta-table">
+                        <tr><td><strong>Application:</strong></td><td>Warrigal Park FC Management System</td></tr>
+                        <tr><td><strong>Semantic Version:</strong></td><td><code>v1.0.0</code></td></tr>
+                        <tr><td><strong>Active Environment:</strong></td><td><span class="badge badge-env" id="cfg-env">development</span></td></tr>
+                        <tr><td><strong>Runtime:</strong></td><td>Node.js Express + SQLite / PostgreSQL Ready</td></tr>
+                        <tr><td><strong>Container Architecture:</strong></td><td>Docker Multi-Stage (Alpine Linux)</td></tr>
+                        <tr><td><strong>CI/CD Automation:</strong></td><td>GitHub Actions Workflow (Lint, Test, Docker Build)</td></tr>
+                    </table>
+                </div>
+
+                <div class="config-card">
+                    <h3>Association Business Rules</h3>
+                    <table class="meta-table">
+                        <tr><td><strong>Governing Body:</strong></td><td>Northside Football Association (NFA)</td></tr>
+                        <tr><td><strong>Playing Season:</strong></td><td>2026</td></tr>
+                        <tr><td><strong>Age Cutoff Date:</strong></td><td>31 December 2026 (Annual Rule 2)</td></tr>
+                        <tr><td><strong>Junior Guardian Rule:</strong></td><td>Strictly Required for Age &lt; 18 (Circular 2026/03)</td></tr>
+                        <tr><td><strong>Maximum Squad Size:</strong></td><td>16 players (18 with written approval)</td></tr>
+                        <tr><td><strong>Team Nominations Due:</strong></td><td>1 March 2026</td></tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="main-card mt-4">
+                <h3>Live Health Check Probe</h3>
+                <pre id="health-json" class="code-block">Fetching status from /api/health...</pre>
+            </div>
+        </section>
+    </main>
+
+    <!-- MODALS -->
+    <!-- Modal: New Member -->
+    <div id="modal-new-member" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Member (Player)</h3>
+                <button class="close-btn" onclick="closeModal('modal-new-member')">&times;</button>
+            </div>
+            <form id="form-new-member" onsubmit="submitNewMember(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>First Name *</label>
+                        <input type="text" name="firstName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Last Name *</label>
+                        <input type="text" name="lastName" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Date of Birth *</label>
+                        <input type="date" name="dob" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Gender</label>
+                        <select name="gender">
+                            <option value="F">Female (F)</option>
+                            <option value="M">Male (M)</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Email (Optional for Juniors)</label>
+                        <input type="email" name="email">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone (Optional for Juniors)</label>
+                        <input type="text" name="phone">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-new-member')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Member</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: New Guardian -->
+    <div id="modal-new-guardian" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add Parent / Legal Guardian</h3>
+                <button class="close-btn" onclick="closeModal('modal-new-guardian')">&times;</button>
+            </div>
+            <form id="form-new-guardian" onsubmit="submitNewGuardian(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>First Name *</label>
+                        <input type="text" name="firstName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Last Name *</label>
+                        <input type="text" name="lastName" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Relationship *</label>
+                        <input type="text" name="relationship" placeholder="mother, father, grandmother, etc." required>
+                    </div>
+                    <div class="form-group">
+                        <label>Mobile Number *</label>
+                        <input type="text" name="mobile" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="email">
+                </div>
+                <div class="form-group">
+                    <label>Residential Address</label>
+                    <input type="text" name="address">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-new-guardian')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Guardian</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Link Sibling to Guardian -->
+    <div id="modal-link-guardian" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Link Junior Member to Guardian (Sibling Sharing)</h3>
+                <button class="close-btn" onclick="closeModal('modal-link-guardian')">&times;</button>
+            </div>
+            <form id="form-link-guardian" onsubmit="submitLinkGuardian(event)">
+                <div class="form-group">
+                    <label>Select Member (Child) *</label>
+                    <select id="link-member-select" name="memberId" required></select>
+                </div>
+                <div class="form-group">
+                    <label>Select Parent / Guardian to Link *</label>
+                    <select id="link-guardian-select" name="guardianId" required></select>
+                </div>
+                <div class="form-group">
+                    <label>Primary Emergency Contact?</label>
+                    <select name="isPrimary">
+                        <option value="1">Yes (Primary)</option>
+                        <option value="0">Secondary</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-link-guardian')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Link Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: New Registration -->
+    <div id="modal-new-registration" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>2026 Season Registration</h3>
+                <button class="close-btn" onclick="closeModal('modal-new-registration')">&times;</button>
+            </div>
+            <form id="form-new-registration" onsubmit="submitNewRegistration(event)">
+                <div class="form-group">
+                    <label>Select Member *</label>
+                    <select id="reg-member-select" name="memberId" required></select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Age Group *</label>
+                        <select name="ageGroup" required>
+                            <option value="U6">Under 6</option>
+                            <option value="U8">Under 8</option>
+                            <option value="U10">Under 10</option>
+                            <option value="U12">Under 12</option>
+                            <option value="U13">Under 13</option>
+                            <option value="U14">Under 14</option>
+                            <option value="U16">Under 16</option>
+                            <option value="U18">Under 18</option>
+                            <option value="Senior">Senior Men / Women</option>
+                            <option value="Over 35">Over 35</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Registration Status *</label>
+                        <select name="status">
+                            <option value="complete">Complete (Enforces Guardian Rule for &lt;18)</option>
+                            <option value="started">Started (Draft)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Medical & Special Notes</label>
+                    <textarea name="notes" placeholder="e.g. Mild asthma, friend requests..."></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-new-registration')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Complete Sign-On</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Create Team -->
+    <div id="modal-new-team" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Team (2026 Season)</h3>
+                <button class="close-btn" onclick="closeModal('modal-new-team')">&times;</button>
+            </div>
+            <form id="form-new-team" onsubmit="submitNewTeam(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Team Name *</label>
+                        <input type="text" name="name" placeholder="e.g. U13G Navy" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Age Group *</label>
+                        <select name="ageGroup" required>
+                            <option value="U8">U8</option>
+                            <option value="U10">U10</option>
+                            <option value="U12">U12</option>
+                            <option value="U13">U13</option>
+                            <option value="U16">U16</option>
+                            <option value="Senior">Senior</option>
+                            <option value="Over 35">Over 35</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Coach Name</label>
+                        <input type="text" name="coachName">
+                    </div>
+                    <div class="form-group">
+                        <label>Coach Mobile</label>
+                        <input type="text" name="coachPhone">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Manager Name</label>
+                        <input type="text" name="managerName">
+                    </div>
+                    <div class="form-group">
+                        <label>Manager Mobile</label>
+                        <input type="text" name="managerPhone">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Training Schedule</label>
+                    <input type="text" name="trainingSchedule" placeholder="e.g. Tue & Thu 5:00–6:15, Field 2">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-new-team')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Team</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Place Player on Roster -->
+    <div id="modal-place-player" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Place Player on Roster</h3>
+                <button class="close-btn" onclick="closeModal('modal-place-player')">&times;</button>
+            </div>
+            <form id="form-place-player" onsubmit="submitPlacePlayer(event)">
+                <div class="form-group">
+                    <label>Select Registered Player *</label>
+                    <select id="place-player-select" name="memberId" required></select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-place-player')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add to Roster</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Move Player Squad -->
+    <div id="modal-move-player" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Move Player Between Teams</h3>
+                <button class="close-btn" onclick="closeModal('modal-move-player')">&times;</button>
+            </div>
+            <form id="form-move-player" onsubmit="submitMovePlayer(event)">
+                <input type="hidden" id="move-member-id" name="memberId">
+                <input type="hidden" id="move-from-team-id" name="fromTeamId">
+                <p id="move-player-prompt" class="mb-3"></p>
+                <div class="form-group">
+                    <label>Destination Team *</label>
+                    <select id="move-to-team-select" name="toTeamId" required></select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-move-player')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Transfer Player</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

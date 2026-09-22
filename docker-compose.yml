@@ -1,0 +1,27 @@
+services:
+  warrigal-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: warrigal_park_fc_app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DB_PATH=/app/data/warrigal_park.sqlite
+      - LOG_LEVEL=info
+      - SESSION_SECRET=prod_deploy_secret_warrigal_2026
+    volumes:
+      - warrigal_data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  warrigal_data:
+    driver: local

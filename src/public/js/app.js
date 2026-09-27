@@ -116,10 +116,21 @@ async function selectTeam(teamId) {
         const json = await res.json();
         if (!json.success) return;
 
-        const { team, players, totalPlayers } = json.data;
+        const { team, players, totalPlayers, compliance } = json.data;
         document.getElementById('selected-team-name').textContent = `${team.name} (Season ${team.season_year})`;
         document.getElementById('selected-team-meta').textContent = 
             `Age Group: ${team.age_group} | Squad Size: ${totalPlayers} / 16 | Coach: ${team.coach_name || 'TBA'} (${team.coach_phone || '—'}) | Manager: ${team.manager_name || 'TBA'} | Training: ${team.training_schedule || 'TBA'}`;
+
+        const badgesEl = document.getElementById('team-compliance-badges');
+        if (badgesEl && compliance) {
+            badgesEl.innerHTML = `
+                <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.4rem; flex-wrap: wrap;">
+                    <small style="font-weight: 600; color: #4b5563;">WWCC / Blue Card Compliance:</small>
+                    ${renderComplianceBadge(compliance.coach)}
+                    ${renderComplianceBadge(compliance.manager)}
+                </div>
+            `;
+        }
 
         const tbody = document.getElementById('roster-tbody');
         tbody.innerHTML = '';
@@ -581,6 +592,17 @@ async function submitLinkGuardian(e) {
     }
 }
 
+function renderComplianceBadge(official) {
+    if (!official) return '';
+    let badgeClass = 'badge-success';
+    if (official.status === 'EXPIRED' || official.status === 'MISSING') badgeClass = 'badge-danger';
+    else if (official.status === 'EXPIRING_SOON' || official.status === 'PENDING_VERIFICATION') badgeClass = 'badge-warning';
+    else if (official.status === 'EXEMPT') badgeClass = 'badge-env';
+
+    const label = `${official.role}: ${official.name} [${official.status}]`;
+    return `<span class="badge ${badgeClass}" title="${official.message || ''}">${label}</span>`;
+}
+
 async function submitNewTeam(e) {
     e.preventDefault();
     const form = e.target;
@@ -590,8 +612,12 @@ async function submitNewTeam(e) {
         ageGroup: form.ageGroup.value,
         coachName: form.coachName.value || null,
         coachPhone: form.coachPhone.value || null,
+        coachWwcc: form.coachWwcc ? form.coachWwcc.value || null : null,
+        coachWwccExpiry: form.coachWwccExpiry ? form.coachWwccExpiry.value || null : null,
         managerName: form.managerName.value || null,
         managerPhone: form.managerPhone.value || null,
+        managerWwcc: form.managerWwcc ? form.managerWwcc.value || null : null,
+        managerWwccExpiry: form.managerWwccExpiry ? form.managerWwccExpiry.value || null : null,
         trainingSchedule: form.trainingSchedule.value || null
     };
 

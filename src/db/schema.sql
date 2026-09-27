@@ -62,9 +62,11 @@ CREATE TABLE IF NOT EXISTS teams (
     coach_name TEXT,
     coach_phone TEXT,
     coach_wwcc TEXT,
+    coach_wwcc_expiry TEXT,
     manager_name TEXT,
     manager_phone TEXT,
     manager_wwcc TEXT,
+    manager_wwcc_expiry TEXT,
     training_schedule TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (season_id) REFERENCES seasons(id) ON DELETE CASCADE

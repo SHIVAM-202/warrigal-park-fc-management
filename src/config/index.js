@@ -24,7 +24,7 @@ const config = {
     dbPath: process.env.DB_PATH || (nodeEnv === 'test' ? ':memory:' : path.resolve(process.cwd(), 'data', 'warrigal_park.sqlite')),
     logLevel: process.env.LOG_LEVEL || 'info',
     appName: 'Warrigal Park FC Management System',
-    version: '1.0.0',
+    version: '1.1.0',
     associationRules: {
         cutoffDateMonth: 12,
         cutoffDateDay: 31,

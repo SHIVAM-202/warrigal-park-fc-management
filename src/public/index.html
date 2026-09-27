@@ -75,6 +75,7 @@
                         <div>
                             <h3 id="selected-team-name">Select a team</h3>
                             <p id="selected-team-meta" class="team-meta"></p>
+                            <div id="team-compliance-badges"></div>
                         </div>
                         <div class="team-roster-actions">
                             <button class="btn btn-sm btn-outline" onclick="openAddPlayerToTeamModal()">+ Place Player on Roster</button>
@@ -452,12 +453,32 @@
                 </div>
                 <div class="form-row">
                     <div class="form-group">
+                        <label>Coach Blue Card / WWCC</label>
+                        <input type="text" name="coachWwcc" placeholder="e.g. 1188-4472">
+                    </div>
+                    <div class="form-group">
+                        <label>Coach WWCC Expiry</label>
+                        <input type="date" name="coachWwccExpiry">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
                         <label>Manager Name</label>
                         <input type="text" name="managerName">
                     </div>
                     <div class="form-group">
                         <label>Manager Mobile</label>
                         <input type="text" name="managerPhone">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Manager Blue Card / WWCC</label>
+                        <input type="text" name="managerWwcc" placeholder="e.g. 1204-9911">
+                    </div>
+                    <div class="form-group">
+                        <label>Manager WWCC Expiry</label>
+                        <input type="date" name="managerWwccExpiry">
                     </div>
                 </div>
                 <div class="form-group">

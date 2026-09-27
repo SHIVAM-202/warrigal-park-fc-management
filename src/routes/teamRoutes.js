@@ -19,6 +19,28 @@ router.get('/season/:seasonId', (req, res) => {
     }
 });
 
+// Club-wide WWCC compliance audit endpoint
+router.get('/season/:seasonId/compliance', (req, res) => {
+    try {
+        const { checkDate } = req.query;
+        const summary = teamService.getClubComplianceSummary(req.params.seasonId, checkDate);
+        res.json({ success: true, data: summary });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// Single team WWCC compliance check
+router.get('/:id/compliance', (req, res) => {
+    try {
+        const { checkDate } = req.query;
+        const compliance = teamService.getTeamCompliance(req.params.id, checkDate);
+        res.json({ success: true, data: compliance });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
 router.get('/:id', (req, res) => {
     try {
         const team = teamService.getTeamById(req.params.id);

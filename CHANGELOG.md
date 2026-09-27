@@ -5,6 +5,17 @@ All notable changes to the Warrigal Park Football Club Management System will be
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Association PlayRegister CSV Export Formatter (WP-14 / PBI-1)**:
+  - Added `ExportService` generating RFC 4180-compliant CSV exports for Northside Football Association (NFA) PlayRegister bulk upload.
+  - Formatted junior member records with verified primary guardian details (contact name, relationship, mobile, email, address).
+  - Formatted senior member records with direct contact details.
+  - Added `GET /api/registrations/export/csv` endpoint with season, status, and age group query filtering.
+  - Added one-click "Export PlayRegister CSV" download button on the Registration Desk web interface.
+  - Added comprehensive automated test suite `tests/csv-export.test.js` covering RFC 4180 delimiter escaping, guardian linkage, and category formatting.
+
 ## [1.0.0] - 2026-09-22
 
 ### Added

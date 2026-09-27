@@ -276,6 +276,11 @@ async function loadRegistrations() {
     }
 }
 
+function exportRegistrationsCSV() {
+    showAlert('Exporting PlayRegister CSV for 2026 season...', 'success');
+    window.location.href = '/api/registrations/export/csv?seasonId=1';
+}
+
 function filterRegistrations() {
     const q = document.getElementById('reg-search').value.toLowerCase();
     const filtered = allRegistrations.filter(r => 

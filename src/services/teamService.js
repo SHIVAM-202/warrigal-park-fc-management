@@ -5,16 +5,16 @@ class TeamService {
         this.db = db || getDatabase();
     }
 
-    createTeam({ name, seasonId, ageGroup, coachName = null, coachPhone = null, coachWwcc = null, managerName = null, managerPhone = null, managerWwcc = null, trainingSchedule = null }) {
+    createTeam({ name, seasonId, ageGroup, coachName = null, coachPhone = null, coachWwcc = null, coachWwccExpiry = null, managerName = null, managerPhone = null, managerWwcc = null, managerWwccExpiry = null, trainingSchedule = null }) {
         if (!name || !seasonId || !ageGroup) {
             throw new Error('Team name, season, and age group are required');
         }
 
         const stmt = this.db.prepare(`
-            INSERT INTO teams (name, season_id, age_group, coach_name, coach_phone, coach_wwcc, manager_name, manager_phone, manager_wwcc, training_schedule)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO teams (name, season_id, age_group, coach_name, coach_phone, coach_wwcc, coach_wwcc_expiry, manager_name, manager_phone, manager_wwcc, manager_wwcc_expiry, training_schedule)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
-        const result = stmt.run(name.trim(), seasonId, ageGroup.trim(), coachName, coachPhone, coachWwcc, managerName, managerPhone, managerWwcc, trainingSchedule);
+        const result = stmt.run(name.trim(), seasonId, ageGroup.trim(), coachName, coachPhone, coachWwcc, coachWwccExpiry, managerName, managerPhone, managerWwcc, managerWwccExpiry, trainingSchedule);
         return this.getTeamById(Number(result.lastInsertRowid));
     }
 
@@ -61,9 +61,11 @@ class TeamService {
         if (updates.coachName !== undefined) { fields.push('coach_name = ?'); values.push(updates.coachName); }
         if (updates.coachPhone !== undefined) { fields.push('coach_phone = ?'); values.push(updates.coachPhone); }
         if (updates.coachWwcc !== undefined) { fields.push('coach_wwcc = ?'); values.push(updates.coachWwcc); }
+        if (updates.coachWwccExpiry !== undefined) { fields.push('coach_wwcc_expiry = ?'); values.push(updates.coachWwccExpiry); }
         if (updates.managerName !== undefined) { fields.push('manager_name = ?'); values.push(updates.managerName); }
         if (updates.managerPhone !== undefined) { fields.push('manager_phone = ?'); values.push(updates.managerPhone); }
         if (updates.managerWwcc !== undefined) { fields.push('manager_wwcc = ?'); values.push(updates.managerWwcc); }
+        if (updates.managerWwccExpiry !== undefined) { fields.push('manager_wwcc_expiry = ?'); values.push(updates.managerWwccExpiry); }
         if (updates.trainingSchedule !== undefined) { fields.push('training_schedule = ?'); values.push(updates.trainingSchedule); }
 
         if (fields.length === 0) return this.getTeamById(id);
@@ -185,10 +187,169 @@ class TeamService {
             };
         });
 
+        // Attach WWCC compliance status for team sheet display
+        const compliance = this.getTeamCompliance(teamId);
+
         return {
             team,
             players: roster,
-            totalPlayers: roster.length
+            totalPlayers: roster.length,
+            compliance
+        };
+    }
+
+    evaluateOfficialCompliance({ role, name, wwcc, expiry, ageGroup, checkDate = new Date() }) {
+        const isJuniorTeam = ageGroup !== 'Senior' && ageGroup !== 'Over 35';
+
+        if (!name || name.trim() === '' || name.toUpperCase() === 'TBA') {
+            return {
+                role,
+                name: name || 'TBA',
+                wwcc: null,
+                expiry: null,
+                status: isJuniorTeam ? 'VACANT' : 'EXEMPT',
+                isCompliant: !isJuniorTeam,
+                daysRemaining: null,
+                message: isJuniorTeam ? `${role} position is vacant (must be filled before Round 1)` : 'No official assigned'
+            };
+        }
+
+        if (!wwcc || !wwcc.trim()) {
+            return {
+                role,
+                name: name.trim(),
+                wwcc: null,
+                expiry: null,
+                status: isJuniorTeam ? 'MISSING' : 'EXEMPT',
+                isCompliant: !isJuniorTeam,
+                daysRemaining: null,
+                message: isJuniorTeam ? `WWCC / Blue Card missing for junior team ${role} (Ineligible to coach)` : 'Adult team official - WWCC optional'
+            };
+        }
+
+        if (!expiry) {
+            return {
+                role,
+                name: name.trim(),
+                wwcc: wwcc.trim(),
+                expiry: null,
+                status: 'PENDING_VERIFICATION',
+                isCompliant: false,
+                daysRemaining: null,
+                message: 'Card number recorded but expiry date unverified'
+            };
+        }
+
+        const today = typeof checkDate === 'string' ? new Date(checkDate) : checkDate;
+        const expDate = new Date(expiry);
+        const diffTime = expDate.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays < 0) {
+            return {
+                role,
+                name: name.trim(),
+                wwcc: wwcc.trim(),
+                expiry,
+                status: 'EXPIRED',
+                isCompliant: false,
+                daysRemaining: diffDays,
+                message: `Card EXPIRED on ${expiry} (${Math.abs(diffDays)} days ago) - strictly ineligible`
+            };
+        } else if (diffDays <= 60) {
+            return {
+                role,
+                name: name.trim(),
+                wwcc: wwcc.trim(),
+                expiry,
+                status: 'EXPIRING_SOON',
+                isCompliant: true,
+                daysRemaining: diffDays,
+                message: `Card expires soon on ${expiry} (${diffDays} days remaining)`
+            };
+        } else {
+            return {
+                role,
+                name: name.trim(),
+                wwcc: wwcc.trim(),
+                expiry,
+                status: 'VALID',
+                isCompliant: true,
+                daysRemaining: diffDays,
+                message: `Valid until ${expiry}`
+            };
+        }
+    }
+
+    getTeamCompliance(teamId, checkDate = new Date()) {
+        const team = this.getTeamById(teamId);
+        if (!team) {
+            throw new Error(`Team with ID ${teamId} not found`);
+        }
+
+        const coachCompliance = this.evaluateOfficialCompliance({
+            role: 'Coach',
+            name: team.coach_name,
+            wwcc: team.coach_wwcc,
+            expiry: team.coach_wwcc_expiry,
+            ageGroup: team.age_group,
+            checkDate
+        });
+
+        const managerCompliance = this.evaluateOfficialCompliance({
+            role: 'Manager',
+            name: team.manager_name,
+            wwcc: team.manager_wwcc,
+            expiry: team.manager_wwcc_expiry,
+            ageGroup: team.age_group,
+            checkDate
+        });
+
+        const isTeamCompliant = coachCompliance.isCompliant && managerCompliance.isCompliant;
+
+        return {
+            teamId: team.id,
+            teamName: team.name,
+            ageGroup: team.age_group,
+            seasonYear: team.season_year,
+            isTeamCompliant,
+            coach: coachCompliance,
+            manager: managerCompliance
+        };
+    }
+
+    getClubComplianceSummary(seasonId, checkDate = new Date()) {
+        const teams = this.getTeamsBySeason(seasonId);
+        const auditList = teams.map(t => this.getTeamCompliance(t.id, checkDate));
+
+        let totalOfficials = 0;
+        let validCount = 0;
+        let expiringSoonCount = 0;
+        let expiredCount = 0;
+        let missingCount = 0;
+
+        auditList.forEach(item => {
+            [item.coach, item.manager].forEach(official => {
+                if (official.name && official.name !== 'TBA') {
+                    totalOfficials++;
+                    if (official.status === 'VALID' || official.status === 'EXEMPT') validCount++;
+                    else if (official.status === 'EXPIRING_SOON') expiringSoonCount++;
+                    else if (official.status === 'EXPIRED') expiredCount++;
+                    else if (official.status === 'MISSING' || official.status === 'VACANT') missingCount++;
+                }
+            });
+        });
+
+        return {
+            seasonId,
+            totalTeams: teams.length,
+            totalOfficials,
+            validCount,
+            expiringSoonCount,
+            expiredCount,
+            missingCount,
+            isFullyCompliant: expiredCount === 0 && missingCount === 0,
+            teams: auditList
         };
     }
 }

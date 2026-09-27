@@ -5,6 +5,17 @@ All notable changes to the Warrigal Park Football Club Management System will be
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Working with Children Check (WWCC / Blue Card) Compliance & Expiry Tracker (WP-15 / PBI-2)**:
+  - Added `coach_wwcc_expiry` and `manager_wwcc_expiry` columns to `teams` schema with incremental backward-compatible migration.
+  - Implemented `evaluateOfficialCompliance`, `getTeamCompliance`, and `getClubComplianceSummary` in `TeamService`.
+  - Enforced Queensland Blue Card safety requirements: flags missing or expired cards as non-compliant/ineligible for junior teams, and raises `EXPIRING_SOON` warnings within 60 days of kickoff.
+  - Added `GET /api/teams/season/:seasonId/compliance` and `GET /api/teams/:id/compliance` audit endpoints.
+  - Added real-time WWCC compliance badges on team sheets and input fields in the team creation modal.
+  - Added comprehensive automated test suite in `tests/wwcc-compliance.test.js`.
+
 ## [1.0.0] - 2026-09-22
 
 ### Added

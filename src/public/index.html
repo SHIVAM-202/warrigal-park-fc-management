@@ -75,6 +75,7 @@
                         <div>
                             <h3 id="selected-team-name">Select a team</h3>
                             <p id="selected-team-meta" class="team-meta"></p>
+                            <div id="team-compliance-badges"></div>
                         </div>
                         <div class="team-roster-actions">
                             <button class="btn btn-sm btn-outline" onclick="openAddPlayerToTeamModal()">+ Place Player on Roster</button>
@@ -114,6 +115,7 @@
                     <p class="section-desc">Record member registrations, enforce the Junior Guardian Rule, and view completed vs pending sign-ons.</p>
                 </div>
                 <div class="actions">
+                    <button class="btn btn-secondary" onclick="exportRegistrationsCSV()">📥 Export PlayRegister CSV</button>
                     <button class="btn btn-primary" onclick="openModal('modal-new-registration')">+ New 2026 Registration</button>
                 </div>
             </div>
@@ -211,7 +213,7 @@
                     <h3>Environment & Runtime Configuration</h3>
                     <table class="meta-table">
                         <tr><td><strong>Application:</strong></td><td>Warrigal Park FC Management System</td></tr>
-                        <tr><td><strong>Semantic Version:</strong></td><td><code>v1.0.0</code></td></tr>
+                        <tr><td><strong>Semantic Version:</strong></td><td><code>v1.1.0</code></td></tr>
                         <tr><td><strong>Active Environment:</strong></td><td><span class="badge badge-env" id="cfg-env">development</span></td></tr>
                         <tr><td><strong>Runtime:</strong></td><td>Node.js Express + SQLite / PostgreSQL Ready</td></tr>
                         <tr><td><strong>Container Architecture:</strong></td><td>Docker Multi-Stage (Alpine Linux)</td></tr>
@@ -451,12 +453,32 @@
                 </div>
                 <div class="form-row">
                     <div class="form-group">
+                        <label>Coach Blue Card / WWCC</label>
+                        <input type="text" name="coachWwcc" placeholder="e.g. 1188-4472">
+                    </div>
+                    <div class="form-group">
+                        <label>Coach WWCC Expiry</label>
+                        <input type="date" name="coachWwccExpiry">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
                         <label>Manager Name</label>
                         <input type="text" name="managerName">
                     </div>
                     <div class="form-group">
                         <label>Manager Mobile</label>
                         <input type="text" name="managerPhone">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Manager Blue Card / WWCC</label>
+                        <input type="text" name="managerWwcc" placeholder="e.g. 1204-9911">
+                    </div>
+                    <div class="form-group">
+                        <label>Manager WWCC Expiry</label>
+                        <input type="date" name="managerWwccExpiry">
                     </div>
                 </div>
                 <div class="form-group">

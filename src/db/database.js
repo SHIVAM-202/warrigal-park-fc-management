@@ -28,6 +28,10 @@ function getDatabase(customPath = null) {
     const schemaSql = fs.readFileSync(schemaPath, 'utf-8');
     db.exec(schemaSql);
 
+    // Apply incremental migrations for teams WWCC expiry fields
+    try { db.exec('ALTER TABLE teams ADD COLUMN coach_wwcc_expiry TEXT;'); } catch (_) {}
+    try { db.exec('ALTER TABLE teams ADD COLUMN manager_wwcc_expiry TEXT;'); } catch (_) {}
+
     if (!customPath) {
         dbInstance = db;
     }

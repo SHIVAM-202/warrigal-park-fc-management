@@ -1,8 +1,28 @@
 const express = require('express');
 const RegistrationService = require('../services/registrationService');
+const ExportService = require('../services/exportService');
 
 const router = express.Router();
 const registrationService = new RegistrationService();
+const exportService = new ExportService();
+
+router.get('/export/csv', (req, res) => {
+    try {
+        const seasonId = req.query.seasonId ? Number(req.query.seasonId) : 1;
+        const status = req.query.status || null;
+        const ageGroup = req.query.ageGroup || null;
+
+        const csvData = exportService.generatePlayRegisterCSV({ seasonId, status, ageGroup });
+        const dateStamp = new Date().toISOString().slice(0, 10);
+        const filename = `WPFC-PlayRegister-${seasonId}-${dateStamp}.csv`;
+
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.status(200).send(csvData);
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
 
 router.get('/season/:seasonId', (req, res) => {
     try {

@@ -5,6 +5,18 @@ All notable changes to the Warrigal Park Football Club Management System will be
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-09-27
+
+### Security
+- Stopped tracking the committed `.env.development`, `.env.test` and `.env.production` files (`git rm --cached`) and changed the session secret.
+- Added `.env.*` rules (except `.env.example`) to `.gitignore` and `.dockerignore`.
+- `docker-compose.yml` now reads `SESSION_SECRET` from the environment instead of hardcoding it.
+
+### Fixed
+- Removed invalid `config/` and `.env.production` COPY lines from the Dockerfile (settings live in `src/config/`).
+- Changed the CI Node matrix to 22.x, as `node:sqlite` is not available in Node 20.
+- Aligned `package.json` dependency ranges with `package-lock.json` (Express 5.2.1, dotenv 18.0.2, cors 2.8.6) so `npm ci` no longer fails in CI.
+
 ## [1.1.0] - 2026-09-27
 
 ### Added

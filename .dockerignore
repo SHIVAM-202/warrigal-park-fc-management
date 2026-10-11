@@ -2,9 +2,9 @@ node_modules
 npm-debug.log
 data/*.sqlite
 .git
+.env
+.env.*
 .gitignore
-.env.local
-.env.development
 tests
 *.docx
 *.pdf

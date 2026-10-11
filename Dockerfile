@@ -22,8 +22,6 @@ RUN mkdir -p /app/data && chown -R node:node /app
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY --chown=node:node package*.json ./
 COPY --chown=node:node src/ ./src/
-COPY --chown=node:node config/ ./config/
-COPY --chown=node:node .env.production ./.env
 
 USER node
 EXPOSE 3000

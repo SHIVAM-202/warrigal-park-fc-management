@@ -12,7 +12,7 @@ services:
       - PORT=3000
       - DB_PATH=/app/data/warrigal_park.sqlite
       - LOG_LEVEL=info
-      - SESSION_SECRET=prod_deploy_secret_warrigal_2026
+      - SESSION_SECRET=${SESSION_SECRET:?Set SESSION_SECRET in your shell or a local .env file}
     volumes:
       - warrigal_data:/app/data
     healthcheck:

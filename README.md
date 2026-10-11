@@ -25,7 +25,7 @@ The delivered application provides a single source of truth for the club's membe
   * Squad transfers (moving a player between teams preserves registration history and does not perturb other players).
   * Coach & Manager Emergency Roster View: Lists players with primary emergency contact name, relationship, and mobile number.
 * **Configuration Management & Deployment**:
-  * 12-Factor App environment configuration management (`.env.example`, `.env.development`, `.env.test`, `.env.production`).
+  * 12-Factor App environment configuration management (`.env.example` template committed; local `.env.*` files are git-ignored).
   * Multi-stage `Dockerfile` and `docker-compose.yml` for isolated deployment.
   * Automated GitHub Actions CI/CD pipeline (`.github/workflows/ci-cd.yml`).
   * Comprehensive automated test suite (`tests/`) achieving 100% pass rate.
@@ -52,14 +52,14 @@ As mandated by Section 4 of the case study, the sprint boundary strictly exclude
 ## 3. Setup and Run Instructions from GitHub
 
 ### Prerequisites
-* **Node.js**: v20.x or v22.x (or v25.x)
+* **Node.js**: v22.13 or later (the app uses the built-in `node:sqlite` module)
 * **Git**: v2.40+
 * **Docker & Docker Compose** (Optional, for containerized execution)
 
 ### Local Development Setup
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/YourGitHubUsername/warrigal-park-fc-management.git
+   git clone https://github.com/SHIVAM-202/warrigal-park-fc-management.git
    cd warrigal-park-fc-management
    ```
 2. **Install dependencies**:
@@ -86,8 +86,9 @@ As mandated by Section 4 of the case study, the sprint boundary strictly exclude
    Open browser at `http://localhost:3000`.
 
 ### Running with Docker Compose
+Set `SESSION_SECRET` first (in your shell or a local `.env` file, which is git-ignored), then:
 ```bash
-docker-compose up --build -d
+docker compose up --build -d
 ```
 Access the application at `http://localhost:3000` and verify health at `http://localhost:3000/api/health`.
 

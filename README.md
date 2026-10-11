@@ -3,56 +3,80 @@
 
 > **Unit:** ISYS3001 Managing Software Development (Southern Cross University)  
 > **Client:** Warrigal Park Football Club Inc., 60 Kluver Street, Bald Hills QLD 4036  
-> **Target Release:** Version 1.0.0 (Production Ready for February Sign-On)
+> **Team:** Team 01 (Bald Hills Devs) — Shivam Patel (@SHIVAM-202), Kaveesha Akalanka (@kaveeaka), Sabin Neupane (@SABINNEUPANE-JARVIS)  
+> **Current Release:** Version 1.1.1 (Production Ready — October 2026 Release)
 
 ---
 
-## 1. What Was Delivered Against Scope
+## 1. What Was Delivered Across Sprints 1, 2 & 3
 
-The delivered application provides a single source of truth for the club's member register and team rosters, directly addressing the core pain points identified by Vanessa Ostrowski (Registrar) and Danny Sok (Junior Coordinator):
+The delivered application provides a robust, single source of truth for the club's member register, compliance governance, and team rosters, replacing the error-prone 43-column Excel spreadsheet. All user stories were tracked in Jira Cloud (Project Key `WP` / `WPFC` — Board `MSD426MELB1`) across three iterative 1-week Scrum sprints:
 
-* **Members & Sibling Guardians (Epic 1 / Stories WP-1 to WP-4)**:
-  * Persistent storage and search for member profiles (handles duplicates and same-name players).
-  * Separate Guardian entity with one-to-many relationship to junior players (siblings share the same guardian record; editing parent details immediately updates across all children).
+### Sprint 1: Core MVP & Junior Safety (Release v1.0.0 — PM: Shivam Patel)
+* **Member & Sibling Guardian Registry (Epic WPFC-E1 / Stories WP-01, WP-02)**:
+  * Persistent storage and search for player member profiles (handles duplicates and same-name players via unique IDs).
+  * Independent `guardians` entity with one-to-many relationship (`guardian_id`) to junior players. Sibling players share the same guardian record; editing parent details immediately updates across all children without duplicating data.
   * Reverse lookup: view all junior members linked to a specific guardian.
-* **Registration Lifecycle & Junior Guardian Rule (Epic 2 / Stories WP-5 to WP-7)**:
-  * Full 2026 season registration management (`started`, `complete`, `withdrawn`).
-  * **Strict Domain Rule Enforcement**: Per Association Circular 2026/03 and club policy, any player under 18 years of age (calculated as of December 31 of playing season) is strictly refused completed registration without at least one verified parent/guardian record linked.
+* **Registration Lifecycle & Junior Guardian Rule (Epic WPFC-E2 / Story WP-03)**:
+  * 2026/2027 season registration workflow (`started`, `complete`, `withdrawn`).
+  * **Strict Domain Rule Enforcement**: Per Association Circular 2026/03 and club insurance policy, any player under 18 years of age (calculated as of December 31 of the playing season) is strictly refused completed registration without at least one verified parent/guardian record linked.
+  * Enforced at dual call sites: both initial registration creation and status update API endpoints.
   * Adults (18+) register independently without requiring guardian consent.
-* **Teams & Squad Rosters (Epic 3 / Stories WP-8 to WP-11)**:
+* **Teams & Squad Rosters (Epic WPFC-E3 / Stories WP-04, WP-05)**:
   * Team creation by season and age group (U8, U13, Senior, Over 35) with coach, manager, and training schedules.
-  * Player placement with prerequisite verification (unregistered players cannot be placed on rosters).
-  * Squad transfers (moving a player between teams preserves registration history and does not perturb other players).
-  * Coach & Manager Emergency Roster View: Lists players with primary emergency contact name, relationship, and mobile number.
-* **Configuration Management & Deployment**:
-  * 12-Factor App environment configuration management (`.env.example` template committed; local `.env.*` files are git-ignored).
-  * Multi-stage `Dockerfile` and `docker-compose.yml` for isolated deployment.
-  * Automated GitHub Actions CI/CD pipeline (`.github/workflows/ci-cd.yml`).
-  * Comprehensive automated test suite (`tests/`) achieving 100% pass rate.
+  * Prerequisite-checked roster placement: unregistered players cannot be placed onto team rosters.
+  * Squad transfers: moving a player between squads preserves registration history without affecting other team members.
+* **DevOps & Containerization (Epic WPFC-E5 / Story WP-07)**:
+  * Multi-stage Alpine `Dockerfile` and `docker-compose.yml` with persistent named volume storage.
+  * Health check probe endpoint at `/api/health`.
+
+### Sprint 2: External Compliance & Association Integration (Release v1.1.0 — PM: Kaveesha Akalanka)
+* **Association PlayRegister CSV Export (Epic WPFC-E4 / Story WP-14)**:
+  * 1-click export of registered members formatted to the Northside Football Association (NFA) PlayRegister schema, eliminating 40+ hours of manual data entry.
+  * Automatically maps linked primary guardian contact information for junior players and self contact details for senior players.
+  * Strict RFC 4180 compliance: properly escapes quotes, commas, and newlines in addresses and text fields.
+  * Filterable by season and registration status.
+* **Blue Card / WWCC Compliance & Expiry Tracker (Epic WPFC-E4 / Story WP-15)**:
+  * Automated SQLite schema migration adding Working with Children Check (Blue Card) numbers and expiry dates to team coaches and managers.
+  * Automated real-time status evaluation against season kickoff:
+    * `COMPLIANT`: Blue Card expiry is more than 60 days post-kickoff.
+    * `EXPIRING_SOON`: Blue Card expires within 60 days of kickoff (alerts official for early renewal).
+    * `NON_COMPLIANT / INELIGIBLE`: Expired or missing Blue Card on junior team officials (strictly flagged as ineligible to take the field).
+    * Adult senior team officials are automatically exempted per state child protection regulations.
+  * Club-wide audit API (`/api/wwcc/audit`) and UI badge indicators.
+* **Coach Emergency Contact Sheets (Epic WPFC-E3 / Story WP-06)**:
+  * Dedicated roster view for coaches and team managers displaying player emergency contacts (primary guardian name, relationship, and mobile number).
+* **Automated Test Expansion**: Expanded automated unit and integration tests from 9 to 21 passing tests.
+
+### Sprint 3: Governance, Architecture & Security Hardening (Release v1.1.1 — PM: Sabin Neupane)
+* **Technical Documentation & Decision Logs (Epic WPFC-E5 / Stories WP-12, WP-13)**:
+  * Complete 4-layer system architecture overview in `architecture.md`.
+  * Technology trade-offs and rationale documented in `decisions.md` (Node 22 native `node:sqlite` selection, foreign key constraints, branching workflow).
+* **Hotfix v1.1.1: Security & CI Hardening (Epic WPFC-E5 / Story WP-08)**:
+  * Security untracking: executed `git rm --cached` on `.env.development`, `.env.test`, and `.env.production` files.
+  * Rotated production session secrets and enforced blanket `.gitignore` rules.
+  * Aligned `package.json` with `package-lock.json` and pinned GitHub Actions CI matrix to Node 22.x, restoring 100% green CI builds across all 21 automated tests.
 
 ---
 
-## 2. What Was Not Delivered, and Why (Product Backlog)
+## 2. What Was Parked in the Product Backlog (Future Sprints)
 
-As mandated by Section 4 of the case study, the sprint boundary strictly excluded secondary and peripheral features to guarantee a stable, defect-free release:
+In accordance with agile best practices and the case study scope boundary, secondary requirements were deliberately logged in the Jira Product Backlog and parked for post-release sprints:
 
-| Feature Requested | Requesting Stakeholder | Reason Parked for Future Sprints | Backlog Ref |
-| :--- | :--- | :--- | :--- |
-| **Payment Gateway Integration** (Stripe/Bank transfer matching) | Vanessa Ostrowski & Robyn Iyer | High compliance overhead (PCI-DSS); requires banking API integration outside core sprint. | `PBI-PAY-01` |
-| **PlayRegister Association Sync** (API / CSV export) | Vanessa Ostrowski | PlayRegister is a proprietary third-party system with no public write API; requires formal NFA data format agreement. | `PBI-NFA-02` |
-| **Working with Children Check (Blue Card) Expiry Tracker** | Robyn Iyer & Danny Sok | Compliance tracking is an administrative governance feature to be built in Sprint 2. | `PBI-GOV-03` |
-| **Automated Squad Limit Warning (16/18 players)** | Danny Sok | Informal trial grading requires flexible soft limits; hard enforcement would hinder Danny's pencil-drafting workflow. | `PBI-TMS-04` |
-| **Public Self-Service Sign-On Portal** | Vanessa Ostrowski | Requires public authentication, rate-limiting, and reCAPTCHA; risk of incorrect DOB entry noted by Vanessa. | `PBI-PUB-05` |
-| **SMS / Email Bulk Notifications** | Danny Sok & Vanessa | Requires external Twilio / SendGrid procurement and operational SMS costs. | `PBI-COM-06` |
-| **Canteen Roster & Volunteer Levy Tracking** | Robyn Iyer | Ancillary operational task unrelated to core player eligibility and insurance liability. | `PBI-OPS-07` |
-| **Club Website & Sponsorship Kit Management** | Robyn Iyer | Non-core marketing function. | `PBI-MKT-08` |
+| Backlog Key | Feature Summary | Requesting Stakeholder | Reason Parked for Future Sprints | Story Points |
+| :--- | :--- | :--- | :--- | :--- |
+| **PBI-01** | **Stripe Online Payment Gateway & Sibling Discount Reconciliation** | Vanessa Ostrowski & Robyn Iyer | High compliance overhead (PCI-DSS); requires merchant banking API integration outside core registration sprint. | 8 |
+| **PBI-02** | **Direct NFA PlayRegister Two-Way API Sync** | Vanessa Ostrowski | PlayRegister is a closed third-party association platform with no public write API. Addressed via RFC 4180 CSV export (WP-14). | 13 |
+| **PBI-03** | **Visual Drag-and-Drop Age Group Grading Board** | Danny Sok | Trial grading workflow optimization; table-based squad transfers satisfy current operational needs. Deferred to Sprint 4. | 5 |
+| **PBI-04** | **Council Participation & Grant Demographics Reporting** | Robyn Iyer | Annual grant reporting feature; non-critical for sign-on day. Deferred to post-season Sprint 4. | 3 |
+| **PBI-05** | **Automated SMS & Email Weather Cancellation Broadcast** | Danny Sok | Requires external Twilio / SendGrid procurement and operational SMS fee budget. | 5 |
 
 ---
 
 ## 3. Setup and Run Instructions from GitHub
 
 ### Prerequisites
-* **Node.js**: v22.13 or later (the app uses the built-in `node:sqlite` module)
+* **Node.js**: v22.13 or later (the application requires the native built-in `node:sqlite` module)
 * **Git**: v2.40+
 * **Docker & Docker Compose** (Optional, for containerized execution)
 
@@ -64,17 +88,18 @@ As mandated by Section 4 of the case study, the sprint boundary strictly exclude
    ```
 2. **Install dependencies**:
    ```bash
-   npm install
+   npm ci
    ```
 3. **Configure environment**:
    ```bash
    cp .env.example .env
    ```
+   *(Ensure `SESSION_SECRET` is set in your local `.env` file; local `.env*` files are strictly git-ignored).*
 4. **Seed initial case study data**:
    ```bash
    npm run seed
    ```
-5. **Run automated test suite**:
+5. **Run automated test suite (21 automated tests)**:
    ```bash
    npm test
    ```
@@ -83,45 +108,45 @@ As mandated by Section 4 of the case study, the sprint boundary strictly exclude
    npm start
    ```
 7. **Access the portal**:
-   Open browser at `http://localhost:3000`.
+   Open your browser at `http://localhost:3000`.
 
 ### Running with Docker Compose
-Set `SESSION_SECRET` first (in your shell or a local `.env` file, which is git-ignored), then:
 ```bash
 docker compose up --build -d
 ```
-Access the application at `http://localhost:3000` and verify health at `http://localhost:3000/api/health`.
+Access the application at `http://localhost:3000` and verify the health check at `http://localhost:3000/api/health`.
 
 ---
 
-## 4. Known Issues and Limitations
+## 4. Automated Testing and Quality Verification
 
-1. **Association Cutoff Rule Static Configuration**: Age cutoff is set to 31 December of the playing year per NFA Rule 2. If NFA alters this cutoff to mid-year, `src/config/index.js` must be updated.
-2. **Local SQLite File Locking in Multi-Instance Deployments**: SQLite is optimized for single-instance container deployments. For horizontally scaled cloud environments, the database adapter should point to managed PostgreSQL.
-3. **Manual Sibling Linking Interface**: Guardians can be shared across multiple children via the UI dropdown, but automated heuristic matching based on residential address is not yet implemented.
+The test harness leverages the native Node.js Test Runner (`node:test`) and assertion library (`node:assert/strict`) with isolated in-memory SQLite instances:
 
----
+```bash
+npm test
+```
 
-## 5. Credentials, Configuration and Environment
-
-All configuration follows the Twelve-Factor App specification:
-
-* `PORT`: Server listening port (Default: `3000`).
-* `NODE_ENV`: Runtime mode (`development`, `test`, `production`).
-* `DB_PATH`: SQLite database storage file path or `:memory:` for automated testing.
-* `LOG_LEVEL`: Application logging verbosity (`debug`, `info`, `warn`, `error`).
-* `SESSION_SECRET`: Secret key for session/token verification (use vault-managed secrets in production).
-
-> [!NOTE]
-> All sample data in `src/db/seed.js` uses fictional names and test phone numbers compliant with the assignment brief. No real personal data is ever committed to source control.
+* **Test Suites**: 4 test files (`tests/registration.test.js`, `tests/team-roster.test.js`, `tests/csv-export.test.js`, `tests/wwcc-compliance.test.js`)
+* **Total Tests**: 21 passing test cases (0 failures, 0 skipped)
+* **Execution Duration**: ~280ms
+* **Traceability**: 100% of functional requirements mapped to automated unit/integration tests.
 
 ---
 
-## 6. Recommended Next-Sprint Backlog (Prioritized)
+## 5. Technology Stack & Architecture
 
-1. **PBI-1: Association PlayRegister CSV Export Formatter (Priority 1 — High)**: Enable Vanessa to export 2026 registered players into NFA-compliant CSV with a single click, eliminating 40+ hours of double-typing.
-2. **PBI-2: WWCC / Blue Card Verification & Expiry Warnings (Priority 2 — High)**: Track coach and manager WWCC numbers on age group working sheets with expiry alerts before Round 1 kick-off.
-3. **PBI-3: Visual Drag-and-Drop Age Group Grading Board (Priority 3 — High)**: Allow Danny Sok to view 40+ players in an age group and drag them between teams (e.g. Navy vs Gold) mimicking his paper trial sheets.
-4. **PBI-4: Participation & Demographics Reporting for Council Grants (Priority 4 — Medium)**: Generate instant 1-click reports of registered players broken down by age group and gender to satisfy the $42,000 lighting grant criteria.
-5. **PBI-5: Sibling Discount & Fee Reconciliation Ledger (Priority 5 — Medium)**: Automatically detect siblings sharing a guardian record to calculate the $50 discount and record bank transfer references.
-6. **PBI-6: Automated SMS Game & Training Cancellation Dispatch (Priority 6 — Low)**: Integrate Twilio API to allow coaches to broadcast wet weather cancellations directly to primary guardian mobile numbers.
+* **Runtime**: Node.js v22.13+ (LTS)
+* **Database**: Native SQLite via `node:sqlite` (ACID compliant, zero external daemon)
+* **Server**: Express.js 5.x
+* **Frontend**: Responsive HTML5 / CSS3 / Vanilla JavaScript portal
+* **Containerization**: Multi-stage Alpine Linux Dockerfile & Docker Compose
+* **CI/CD**: GitHub Actions automated pipeline (`.github/workflows/ci-cd.yml`)
+* **Agile Management**: Atlassian Jira Cloud (Scrum Board `MSD426MELB1`)
+
+---
+
+## 6. Git Branching & Release History
+
+* `v1.0.0`: Sprint 1 Release — Member registration, sibling guardian linking, Junior Guardian Rule enforcement, Docker setup.
+* `v1.1.0`: Sprint 2 Release — NFA PlayRegister CSV export, Blue Card / WWCC compliance tracker, 21 automated tests.
+* `v1.1.1`: Sprint 3 Release — Hotfix v1.1.1 (security untracking of `.env` files, session secret rotation, package-lock CI alignment).

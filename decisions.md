@@ -33,9 +33,12 @@ environment and version. This endpoint is used by the Docker
 healthcheck, by the CI container smoke test, and by the UI
 configuration tab.
 
-## D5 — Trunk-based branching
+## D5 — Git Flow branching strategy with release and hotfix branches
 
-The team used `main`, `develop`, `release/vX.Y.Z`, and short-lived
-`feature/*` branches. Every feature merged into `develop` via pull
-request; releases were cut from `release/*` and merged into both
-`develop` and `main`.
+The team adopted a Git Flow branching model utilizing `main` (production),
+`develop` (staging integration), short-lived `feature/*` branches,
+`release/vX.Y.Z` stabilization branches, and emergency `hotfix/vX.Y.Z`
+patch branches. Every feature branch was reviewed via Pull Request and
+verified by automated CI before merging into `develop`. Release branches
+isolated candidate stabilization, and hotfix branches addressed urgent
+security/configuration fixes directly on `main` before back-merging to `develop`.
